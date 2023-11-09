@@ -1,6 +1,6 @@
 {
     "tissue_params": {
-        "L": 9,
+        "L": 11,
         "A0": 1,
         "P0": 3.81,
         "kappa_A": 1,
@@ -31,7 +31,7 @@
     },
     "simulation_params": {
         "dt": 0.025,
-        "tfin": 100,
+        "tfin": 500,
         "tskip": 10,
         "grn_sim": null,
         "random_seed": 10
@@ -43,7 +43,7 @@
     "save_options": {},
     "save_data": true,
     "animate": true,
-    "n_frames": 75,
+    "n_frames": 200,
     "fps": 15,
     "dpi": 300,
     "c_type_col_map": [

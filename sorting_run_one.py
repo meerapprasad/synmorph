@@ -25,7 +25,7 @@ ex.observers.append(
 )
 
 # Set default experimental configuration
-config_file = os.path.abspath("default_config.json")
+config_file = os.path.abspath("configs/config_test.json")
 ex.add_config(config_file)
 
 @ex.main  # Use ex as our provenance system and call this function as __main__()
@@ -33,9 +33,13 @@ def run_one_simulation(_config, _run, seed):
     """Simulates SPV given a single parameter configuration"""
     # _config contains all the variables in the configuration
     # _run contains data about the run
-    
+    c = _config.copy()
+
+    # Extract save_data and remove from config
+    # save_data = c.pop('save_data')
+    # animate_data = c.pop('animate_data')
     do_one_simulation(
-        ex=ex, 
+        ex=ex,
         **_config
     )
 

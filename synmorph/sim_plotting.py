@@ -139,7 +139,7 @@ def plot_vor(ax, x, L, cols=None, cbar=None, **kwargs):
     regions, vertices = voronoi_finite_polygons_2d(Voronoi(y))
     patches = []
     for i, region in enumerate(regions):
-        patches.append(Polygon(vertices[region], True, facecolor=cols_print[i], ec=(1, 1, 1, 1), **kwargs))
+        patches.append(Polygon(xy=vertices[region], closed=True, facecolor=cols_print[i], edgecolor=(1, 1, 1, 1), **kwargs))
 
     p = PatchCollection(patches, match_original=True)
     # p.set_array(c_types_print)

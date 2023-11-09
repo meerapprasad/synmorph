@@ -23,10 +23,14 @@ data_dir = os.path.abspath(f"/tmp/{uid}")  # Use root temp dir (Linux/MacOS)
 os.makedirs(data_dir, exist_ok=True)
 
 
+
 def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
 
     # Create simulation with defined configuration
     sim = Simulation(**cfg)
+    # sacred_storage_dir = os.path.abspath("./sacred")
+    # data_dir = os.path.join(sacred_storage_dir, f"run_{ex.current_run._id}")
+    # os.makedirs(data_dir, exist_ok=True)
 
     # Run
     sim.simulate(progress_bar=False)

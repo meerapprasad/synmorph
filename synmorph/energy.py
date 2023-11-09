@@ -37,7 +37,7 @@ class Energy:
     
 
     def get_E_v(self):
-        self.E_v = get_E_per_cell
+        self.E_v = get_E_per_cell(
             self.t.mesh.A,
             self.t.mesh.P,
             self.Jm,

@@ -11,9 +11,16 @@ from sorting_run_one import ex
 
 ## Set params values to scan
 # W_val (off-diagonals of adhesion matrix W)
-min_val = 0.
-max_val = 0.015
-n_vals  = 15
+# min_val = 0.
+# max_val = 0.015
+
+min_val = 1.0
+max_val = 1.0
+
+# min_val = 3.
+# max_val = 3.015
+
+n_vals = 1
 
 # Set chunksize for workers
 chunksize = 5
@@ -25,6 +32,8 @@ def do_sim_in_parallel(_wv):
     """Perform a sim on one worker."""
 
     # Make adhesion matrix
+    #_w = [[0., _wv], [_wv, 0.]]
+    ## todo: need to get stable structure with 3 components
     _w = [[0., _wv], [_wv, 0.]]
     
     # Update tissue params dict
