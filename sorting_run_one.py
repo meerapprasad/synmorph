@@ -25,7 +25,8 @@ ex.observers.append(
 )
 
 # Set default experimental configuration
-config_file = os.path.abspath("configs/config_test.json")
+config_file = os.path.abspath("configs/perturb_3.json")
+## todo: add initial config file path
 ex.add_config(config_file)
 
 @ex.main  # Use ex as our provenance system and call this function as __main__()

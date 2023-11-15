@@ -36,6 +36,7 @@ class Force:
         self.Jp = get_J(self.t.W, self.t.tc_types, self.t.tc_typesp, self.t.nc_types)
         self.Jm = get_J(self.t.W, self.t.tc_types, self.t.tc_typesm, self.t.nc_types)
 
+# np.unique(self.t.tc_types.ravel() + self.t.nc_types * self.t.tc_typesp.ravel())
     def get_F_mechanics(self):
         """
         Calculates the forces on cell centroids given the del of the energy functional.
@@ -188,3 +189,16 @@ def get_tFsoft(tx, a, k, L):
 @jit(nopython=True)
 def sum_F(F, F_soft):
     return F + F_soft
+
+
+# another way to index the interaction terms
+# def get_J(W, tc_types, neigh_tctypes, nc_types):
+#     # Reshape tc_types and neigh_tctypes to have the same shape
+#     tc_types_flat = tc_types.ravel()
+#     neigh_tctypes_flat = neigh_tctypes.ravel()
+#
+#     # Use advanced indexing to get the interaction values directly from W
+#     interactions = W[tc_types_flat, neigh_tctypes_flat]
+#
+#     # Reshape the result to have 3 columns
+#     return interactions.reshape(-1, 3)

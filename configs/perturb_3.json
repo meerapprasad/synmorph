@@ -2,7 +2,7 @@
     "tissue_params": {
         "L": 11,
         "A0": 1,
-        "P0": 3.81,
+        "P0": 3.51,
         "kappa_A": 1,
         "kappa_P": 0.1,
         "W": [
@@ -24,14 +24,12 @@
     },
     "init_params": {
         "init_noise": 5e-05,
-        "c_type_proportions": [
-            0.5,
-            0.5
-        ]
+        "n_perturb": 0,
+        "init_config_file":"/home/mprasad/PycharmProjects/SynmorphResults_v1/init_configs/xenium_xmin_3750_xmax_3950_ymin_3070_ymax_3300.npy"
     },
     "simulation_params": {
-        "dt": 0.0025,
-        "tfin": 500,
+        "dt": 0.002,
+        "tfin": 600,
         "tskip": 10,
         "grn_sim": null,
         "random_seed": 10
@@ -43,11 +41,12 @@
     "save_options": {},
     "save_data": true,
     "animate": true,
-    "n_frames": 200,
+    "n_frames": 110,
     "fps": 15,
     "dpi": 300,
     "c_type_col_map": [
-        "#FFBA40",
-        "#67F5B5"
+        "#00ffff",
+        "#807fff",
+        "#ff00ff"
     ]
 }

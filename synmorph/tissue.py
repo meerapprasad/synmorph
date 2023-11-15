@@ -32,7 +32,6 @@ class Tissue:
             assert active_params is not None, "Specify active params"
             assert init_params is not None, "Specify init params"
             assert run_options is not None, "Specify run options"
-
             self.tissue_params = tissue_params
             
             # Convert adhesion matrix to numpy array 
@@ -98,10 +97,17 @@ class Tissue:
         :param run_options:
         :return:
         """
-        self.initialize_mesh(run_options=run_options)
-        self.assign_ctypes()
+        if self.init_params["init_config_file"] is not None:
+            c_arr = np.load(self.init_params["init_config_file"])
+            self.initialize_mesh(x=c_arr[:,:2], run_options=run_options)
+            self.assign_ctypes_from_config(c_arr[:,2],  n_perturb=self.init_params["n_perturb"])
 
-    def initialize_mesh(self, run_options=None):
+        else:
+            self.initialize_mesh(x=None, run_options=run_options)
+            self.assign_ctypes()
+
+
+    def initialize_mesh(self, x=None, run_options=None):
         """
         Make initial condition. Currently, this is a hexagonal lattice + noise
 
@@ -113,21 +119,20 @@ class Tissue:
         :param L: Domain size/length (np.float32)
         :param noise: Gaussian noise added to {x,y} coordinates (np.float32)
         """
+        if x is None:
+            x = trf.hexagonal_lattice(int(self.L), int(np.ceil(self.L)), noise=self.init_noise, A=self.A0)
+            x += 1e-3
+            np.argsort(x.max(axis=1))
+            x = x[np.argsort(x.max(axis=1))[:int(self.L ** 2 / self.A0)]]
 
-        x = trf.hexagonal_lattice(int(self.L), int(np.ceil(self.L)), noise=self.init_noise, A=self.A0)
-        x += 1e-3
-        np.argsort(x.max(axis=1))
-
-        x = x[np.argsort(x.max(axis=1))[:int(self.L ** 2 / self.A0)]]
         self.mesh = Mesh(x, self.L, run_options=run_options)
 
-    def assign_ctypes(self):
+    def assign_ctypes(self):  #, mixed=False
         assert sum(self.c_type_proportions) == 1.0, "c_type_proportions must sum to 1.0"
         assert (np.array(self.c_type_proportions) >= 0).all(), "c_type_proportions values must all be >=0"
         self.nc_types = len(self.c_type_proportions)
         self.c_typeN = [int(pr * self.mesh.n_c) for pr in self.c_type_proportions[:-1]]
         self.c_typeN += [self.mesh.n_c - sum(self.c_typeN)]
-
         c_types = np.zeros(self.mesh.n_c, dtype=np.int32)
         j = 0
         for k, ctN in enumerate(self.c_typeN):
@@ -135,6 +140,22 @@ class Tissue:
             j += ctN
         np.random.shuffle(c_types)
         self.c_types = c_types
+        self.c_type_tri_form()
+
+    def assign_ctypes_from_config(self, c_type_arr, n_perturb=None):  #todo: add perturbation here?
+        self.c_types = c_type_arr.astype(np.int32)
+        if n_perturb is not None:
+            # todo: center of cell type 1, perturb outwards n_perturb
+            c2_points = self.mesh.x[c_type_arr == 1]
+            centroid = np.mean(c2_points, axis=0)
+            distances = np.linalg.norm(c2_points - centroid, axis=1)
+            closest_index = np.argmin(distances)
+            closest_point = c2_points[closest_index]
+            perturb_idx = np.argwhere(self.mesh.x == closest_point)[0][0]
+            self.c_types[perturb_idx] = 2
+
+        self.nc_types = len(np.unique(self.c_types))
+        self.c_typeN = np.unique(self.c_types, return_counts=True)[1].tolist()
         self.c_type_tri_form()
 
     def c_type_tri_form(self):
@@ -287,3 +308,93 @@ def sum_forces(F, aF):
 @jit(nopython=True)
 def _vectorify(x, n):
     return x * np.ones(n)
+
+    # When there are two or three cell types, sort them without shuffling.
+#     j = 0
+#     for k, ctN in enumerate(self.c_typeN[:2]):
+#         c_types[j:j + ctN] = k
+#         j += ctN
+#     if self.nc_types == 3:
+#         # When there are three cell types, insert the third one in the center of the second cell type section.
+#         second_type_start = self.c_typeN[0]
+#         second_type_end = second_type_start + self.c_typeN[1]
+#         middle_index = (second_type_start + second_type_end) // 2
+#         # Insert the third cell type in the middle of the second cell type section.
+#         c_types[middle_index] = 2
+#         # Adjust counts for the second and third cell types.
+#         c_types[second_type_end:] = 1
+#
+# self.c_types = c_types
+# self.c_type_tri_form()
+# Splitting the frame vertically into two halves
+# Assuming cells are stored row-wise in the array
+# for row in range(self.L):
+#     for col in range(self.L):
+#         # Calculate the linear index from 2D coordinates
+#         index = row * self.L + col
+#         # Assign cell type based on the column
+#
+#         if col < self.L // 2:
+#             c_types[index] = 0  # First cell type for the left half
+#         else:
+#             c_types[index] = 1  # Second cell type for the right half
+# self.c_types = c_types.reshape((self.L, self.L))  # Reshape if needed for further processing
+# self.c_type_tri_form()
+
+
+   # c_types = np.zeros(self.mesh.n_c, dtype=np.int32)
+   #              new_cell_type = 2  # Assuming 0 and 1 are the other two types
+   #              num_new_cells = self.c_typeN[2]  # Number of cells for the new cell type
+   #              # Calculate the side length of the square for the new cell type
+   #              side_length = int(np.ceil(np.sqrt(num_new_cells)))
+   #              # Calculate center coordinates for the left half (cell type 0)
+   #              center_row = self.L // 2
+   #              center_col = self.L // 4  # Middle of the left half
+   #              # Determine starting point for placing the new cell type
+   #              start_row = int(max(center_row - side_length // 2, 0))
+   #              start_col = int(max(center_col - side_length // 2, 0))
+   #              width, height = self.L, self.L
+   #              # Assign cell types
+   #              new_cell_count = 0
+   #              for row in range(start_row, min(start_row + side_length, height)):
+   #                  for col in range(start_col, min(start_col + side_length, width // 2)):
+   #                      if new_cell_count < num_new_cells:
+   #                          index = row * width + col
+   #                          c_types[index] = new_cell_type
+   #                          new_cell_count += 1
+   #              # Fill in remaining cells with the existing cell types
+   #              for row in range(height):
+   #                  for col in range(width):
+   #                      index = row * width + col
+   #                      if c_types[index] == 0:
+   #                          if col < width // 2:
+   #                              c_types[index] = 0  # First cell type for the left half
+   #                          else:
+   #                              c_types[index] = 1
+
+
+# else:
+# if self.nc_types == 3:
+#     lattice = self.create_hexagonal_lattice()
+#     c_types = np.ones(len(lattice), dtype=int)
+#     mid_x = self.L * 3 / 4
+#     c_types[lattice[:, 0] < mid_x] = 0
+#
+#     # Find center of the left side for the special cell type
+#     center_x = mid_x / 2
+#     center_y = self.L * np.sqrt(3) / 2
+#     distances = np.sqrt((lattice[:, 0] - center_x) ** 2 + (lattice[:, 1] - center_y) ** 2)
+#     closest_indices = np.argsort(distances)[:self.c_typeN[2]]
+#     c_types[closest_indices] = 2
+# self.c_types = c_types  # .reshape((height, width))  # Reshape for further processing
+# self.c_type_tri_form()
+
+    # def create_hexagonal_lattice(self):
+    #     width, height = self.L, self.L
+    #     lattice = []
+    #     for row in range(height):
+    #         for col in range(width):
+    #             x = col * 3/2  # 3/2 comes from hexagonal lattice geometry
+    #             y = np.sqrt(3) * (row + 0.5 * (col % 2))  # Offset every other column
+    #             lattice.append((x, y))
+    #     return np.array(lattice)

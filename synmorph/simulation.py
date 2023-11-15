@@ -47,7 +47,7 @@ class Simulation:
         assert simulation_params is not None, "Specify simulation params"
         assert run_options is not None, "Specify run options"
         assert save_options is not None, "Specify save options"
-
+        ## todo: specify tissue_file here?
         self.simulation_params = deepcopy(simulation_params)
         self.save_options      = deepcopy(save_options)
 
@@ -176,7 +176,26 @@ class Simulation:
             if not i % self.tskip:
                 ## for the saving time-points, copy over to x_save (and also var_save)
                 self.x_save[k] = self.t.mesh.x
-                self.tri_save[k] = self.t.mesh.tri
+                try:
+                    # Attempt to assign the value to self.tri_save[k]
+                    self.tri_save[k] = self.t.mesh.tri
+                except ValueError as e:
+                    # If there is a shape mismatch, adjust the size of self.tri_save[k]
+                    # This could mean resizing the array, which may involve truncation or padding with a default value
+                    old_shape = self.tri_save[k].shape
+                    new_shape = self.t.mesh.tri.shape
+
+                    # Determine if you need to pad (increase size) or truncate (decrease size) the original array
+                    if new_shape[0] > old_shape[0]:
+                        # If the new array is larger, pad the original array
+                        padding = new_shape[0] - old_shape[0]
+                        self.tri_save[k] = np.pad(self.tri_save[k], ((0, padding), (0, 0)), 'constant',
+                                                  constant_values=0)
+                    else:
+                        # If the new array is smaller, truncate the original array
+                        self.tri_save[k] = self.tri_save[k][:new_shape[0], :]
+
+                # self.tri_save[k] = self.t.mesh.tri
                 if grn:
                     self.var_save[k] = self.grn.var
                 k += 1

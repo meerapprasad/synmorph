@@ -67,6 +67,6 @@ def get_E_per_cell(
     E += kappa_A / 2 * (A - A0) ** 2
     E += kappa_P / 2 * (P - P0) ** 2
 #    E += Jm * lm1 + Jp * lp1    ## This is wrong - looks like J is defined at vertices?
-    return E_A + E_P + E_J
+    return E
 
 

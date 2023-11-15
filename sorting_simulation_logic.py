@@ -29,8 +29,6 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
     # Create simulation with defined configuration
     sim = Simulation(**cfg)
     # sacred_storage_dir = os.path.abspath("./sacred")
-    # data_dir = os.path.join(sacred_storage_dir, f"run_{ex.current_run._id}")
-    # os.makedirs(data_dir, exist_ok=True)
 
     # Run
     sim.simulate(progress_bar=False)
@@ -71,6 +69,7 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
             sim.animate_c_types(
                 dir_name=data_dir,
                 file_name=anim_fname,
+                c_type_col_map=cfg["c_type_col_map"],
                 n_frames=cfg["n_frames"],
                 fps=cfg["fps"],
                 dpi=cfg["dpi"],

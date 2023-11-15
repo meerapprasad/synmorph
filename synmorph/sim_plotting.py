@@ -215,6 +215,7 @@ def generate_ctype_cols(c_types, c_type_col_map=["#00c8f0", "#f0a800"]):
     :param c_type_col_map: corresponding colours for each of the cell types. e.g. in hex format.
     :return:
     """
+    c_types = c_types.copy().reshape(-1)
     cols = np.empty(len(c_types), dtype=object)
     cols[:] = "grey"
     # cols = np.repeat("grey", len(c_types))

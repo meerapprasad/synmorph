@@ -24,14 +24,12 @@
     },
     "init_params": {
         "init_noise": 5e-05,
-        "c_type_proportions": [
-            0.5,
-            0.5
-        ]
+        "n_perturb": 1,
+        "init_config_file":"/home/mprasad/PycharmProjects/SynmorphResults_v1/init_configs/91.npy"
     },
     "simulation_params": {
         "dt": 0.0025,
-        "tfin": 500,
+        "tfin": 750,
         "tskip": 10,
         "grn_sim": null,
         "random_seed": 10
@@ -48,6 +46,7 @@
     "dpi": 300,
     "c_type_col_map": [
         "#FFBA40",
-        "#67F5B5"
+        "#67F5B5",
+        "#636363"
     ]
 }
