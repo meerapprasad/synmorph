@@ -25,7 +25,7 @@ ex.observers.append(
 )
 
 # Set default experimental configuration
-config_file = os.path.abspath("configs/perturb_3.json")
+config_file = os.path.abspath("configs/no_perturb.json")
 ## todo: add initial config file path
 ex.add_config(config_file)
 

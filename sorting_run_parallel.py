@@ -33,8 +33,8 @@ def do_sim_in_parallel(_wv):
     """Perform a sim on one worker."""
 
     # Make adhesion matrix
-    _w = [[0., _wv,_wv*10], [_wv, 0., _wv], [_wv*10, _wv, 0.]]
-    # _w = [[0., _wv], [_wv, 0.]]
+    # _w = [[0., _wv,_wv*10], [_wv, 0., _wv], [_wv*10, _wv, 0.]]
+    _w = [[0., _wv], [_wv, 0.]]
     # todo: adhesion matrix, v0, and K_p need to change for the perturbed cell
     
     # Update tissue params dict
