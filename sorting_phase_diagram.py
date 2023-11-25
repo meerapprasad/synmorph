@@ -9,19 +9,21 @@ import itertools
 
 from sorting_run_one import ex
 
-dt = 0.01
-n_steps = 10_000
-n_frames = 300
+dt = 0.025
+# n_steps = 1_000
+n_steps = 10 ## make sure sim runs for 10 steps
+n_frames = 2
+# n_frames = 100
 
 ## param vals to scan
-w_range = [-0.1, 0.1]
-kappa_p_range = [0.05, 0.15]
-v0_range = [0.0, 0.15]
-p0_range = [3.25, 4.5]
+w_range = [-0.01, 0.01]
+# kappa_p_range = [0.05, 0.15]
+v0_range = [0.0, 0.125]
+p0_range = [3.5, 3.9]
 
-n_vals = 10
+n_vals = 2
 w_vals = [float(w) for w in np.linspace(w_range[0], w_range[1], n_vals)]
-kappa_p_vals = [float(k) for k in np.linspace(kappa_p_range[0], kappa_p_range[1], n_vals)]
+# kappa_p_vals = [float(k) for k in np.linspace(kappa_p_range[0], kappa_p_range[1], n_vals)]
 v0_vals = [float(v) for v in np.linspace(v0_range[0], v0_range[1], n_vals)]
 p0_vals = [float(p) for p in np.linspace(p0_range[0], p0_range[1], n_vals)]
 
@@ -36,14 +38,14 @@ sp_dict = deepcopy(ex.configurations[0]._conf["simulation_params"])
 
 def do_sim_in_parallel(params):
     """Perform a sim on one worker."""
-    _wv, kappa_p, v0, p0 = params
+    _wv, v0, p0 = params  #kappa_p,
     # Make adhesion matrix
     _w = [[0., _wv], [_wv, 0.]]
 
     # Update tissue params dict
     tp = deepcopy(tp_dict)
     tp["W"] = _w
-    tp["kappa_P"] = kappa_p
+#    tp["kappa_P"] = kappa_p
     tp["P0"] = p0
     ap = deepcopy(ap_dict)
     ap["v0"] = v0
@@ -64,7 +66,7 @@ def do_sim_in_parallel(params):
 # Parallelize simulation
 if __name__ == '__main__':
     # Get param values to change
-    params_lst = list(itertools.product(w_vals, kappa_p_vals, v0_vals, p0_vals))
+    params_lst = list(itertools.product(w_vals, v0_vals, p0_vals)) #kappa_p_vals,
     print("Assembling worker pool")
 
     # Get worker pool
@@ -79,3 +81,4 @@ if __name__ == '__main__':
     pool.join()
 
 
+print('done')
