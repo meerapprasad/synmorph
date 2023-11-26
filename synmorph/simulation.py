@@ -139,8 +139,8 @@ class Simulation:
         Of size nts x nv x 3 x 2
         :return:
         """
-        self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
-
+        # self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
+        self.tri_save = [None] * self.nts
 
     def simulate(self, progress_bar=True):
         """
@@ -176,24 +176,7 @@ class Simulation:
             if not i % self.tskip:
                 ## for the saving time-points, copy over to x_save (and also var_save)
                 self.x_save[k] = self.t.mesh.x
-                try:
-                    # Attempt to assign the value to self.tri_save[k]
-                    self.tri_save[k] = self.t.mesh.tri
-                except ValueError as e:
-                    # If there is a shape mismatch, adjust the size of self.tri_save[k]
-                    # This could mean resizing the array, which may involve truncation or padding with a default value
-                    old_shape = self.tri_save[k].shape
-                    new_shape = self.t.mesh.tri.shape
-
-                    # Determine if you need to pad (increase size) or truncate (decrease size) the original array
-                    if new_shape[0] > old_shape[0]:
-                        # If the new array is larger, pad the original array
-                        padding = new_shape[0] - old_shape[0]
-                        self.tri_save[k] = np.pad(self.tri_save[k], ((0, padding), (0, 0)), 'constant',
-                                                  constant_values=0)
-                    else:
-                        # If the new array is smaller, truncate the original array
-                        self.tri_save[k] = self.tri_save[k][:new_shape[0], :]
+                self.tri_save[k] = self.t.mesh.tri
 
                 # self.tri_save[k] = self.t.mesh.tri
                 if grn:
@@ -449,3 +432,23 @@ class Simulation:
     @property
     def tskip(self):
         return self.simulation_params["tskip"]
+
+#
+# try:
+#     # Attempt to assign the value to self.tri_save[k]
+#     self.tri_save[k] = self.t.mesh.tri
+# except ValueError as e:
+#     # If there is a shape mismatch, adjust the size of self.tri_save[k]
+#     # This could mean resizing the array, which may involve truncation or padding with a default value
+#     old_shape = self.tri_save[k].shape
+#     new_shape = self.t.mesh.tri.shape
+#
+#     # Determine if you need to pad (increase size) or truncate (decrease size) the original array
+#     if new_shape[0] > old_shape[0]:
+#         # If the new array is larger, pad the original array
+#         padding = new_shape[0] - old_shape[0]
+#         self.tri_save[k] = np.pad(self.tri_save[k], ((0, padding), (0, 0)), 'constant',
+#                                   constant_values=0)
+#     else:
+#         # If the new array is smaller, truncate the original array
+#         self.tri_save[k] = self.tri_save[k][:new_shape[0], :
