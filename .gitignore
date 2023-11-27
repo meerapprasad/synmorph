@@ -3,7 +3,7 @@ scratch/
 figures/
 results/
 plots/
-
+hpc_scripts/
 # Sacred (provenance system for experiments)
 sacred/
 

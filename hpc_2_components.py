@@ -2,7 +2,7 @@ from copy import deepcopy
 import argparse
 from sorting_run_one import ex
 
-
+# todo: implement computing connected components at each step and saving
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--w_ab', type=float, default=0.0072, help='cross-adhesion strength')

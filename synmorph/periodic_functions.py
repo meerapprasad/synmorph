@@ -45,3 +45,6 @@ def per3(X, Lx, Ly):
     x = np.mod(X[:, :, 0] + Lx / 2, Lx) - Lx / 2
     y = np.mod(X[:, :, 1] + Ly / 2, Ly) - Ly / 2
     return np.dstack((x, y))
+
+
+## todo: add connected components here

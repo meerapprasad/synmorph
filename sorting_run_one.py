@@ -44,4 +44,6 @@ def run_one_simulation(_config, _run, seed):
         **_config
     )
 
+    ## todo: try-except block here that only changes dt
+
 

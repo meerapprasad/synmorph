@@ -139,8 +139,8 @@ class Simulation:
         Of size nts x nv x 3 x 2
         :return:
         """
-        # self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
-        self.tri_save = [None] * self.nts
+        self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
+        # self.tri_save = [None] * self.nts
 
     def simulate(self, progress_bar=True):
         """

@@ -27,11 +27,20 @@ os.makedirs(data_dir, exist_ok=True)
 def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
 
     # Create simulation with defined configuration
-    sim = Simulation(**cfg)
+    try:
+        sim = Simulation(**cfg)
+        # Run
+        sim.simulate(progress_bar=False)
+    except Exception as e:
+        modified_cfg = cfg.copy()
+        modified_cfg["simulation_params"]["dt"] = cfg["simulation_params"]["dt"] /10
+        modified_cfg["simulation_params"]["tfin"] = cfg["simulation_params"]["tfin"] * 2
+        sim = Simulation(**modified_cfg)
+        # Run
+        sim.simulate(progress_bar=False)
     # sacred_storage_dir = os.path.abspath("./sacred")
 
-    # Run
-    sim.simulate(progress_bar=False)
+
 
     if ex is not None:
 
