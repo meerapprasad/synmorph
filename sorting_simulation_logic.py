@@ -1,8 +1,10 @@
 from uuid import uuid4
 import os
 import h5py
+import numpy as np
 from glob import glob
-
+from synmorph.analysis.connected_components import cc_per_dt
+# from synmorph.analysis.topological import count_connected_components
 from synmorph.simulation import Simulation
 
 #### This script runs one simulation and optionally stores
@@ -60,11 +62,16 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
 
             # Dump data to an HDF5 file
             data_dump_fname = os.path.join(data_dir, "results.hdf5")
+            # todo: save cc_arr here
+            #tri, c_types, n_c
+            cc_arr = cc_per_dt(sim.t.c_types, sim.tri_save)
+
             with h5py.File(data_dump_fname, "w") as f:
                 f.create_dataset("c_types", data=sim.t.c_types)
                 f.create_dataset("t_span_save", data=sim.t_span_save)
                 f.create_dataset("tri_save", data=sim.tri_save)
                 f.create_dataset("x_save", data=sim.x_save)
+                f.create_dataset("cc_arr", data=cc_arr)
 
             # Add to Sacred artifacts
             artifacts.append(data_dump_fname)
@@ -90,6 +97,8 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
         # Add all artifacts to Sacred
         for _a in artifacts:
             ex.add_artifact(_a)
+
+        ## todo: save cc_arr at central location ?
 
     else:
         return sim
