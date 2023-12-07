@@ -3,6 +3,8 @@ import sacred
 from glob import glob
 from sacred.observers import FileStorageObserver
 from sorting_simulation_logic import do_one_simulation
+from sacred import SETTINGS
+SETTINGS['CAPTURE_MODE'] = 'sys'
 
 # Set up Sacred experiment
 ex = sacred.Experiment("sorting_test")
@@ -18,6 +20,7 @@ res_dir = "./sacred"                          # Local
 # res_dir = "/home/pbhamidi/scratch/lateral_signaling/sacred"  # Scratch dir on Caltech HPC (fast read/write)
 
 # Use this dir for storage
+# todo: update storage here
 sacred_storage_dir = os.path.abspath(res_dir)
 # os.makedirs(sacred_storage_dir)   # Make dir if it doesn't exist
 ex.observers.append(
@@ -25,7 +28,9 @@ ex.observers.append(
 )
 
 # Set default experimental configuration
-config_file = os.path.abspath("configs/no_perturb.json")
+# config_file = os.path.abspath("configs/no_perturb.json")
+config_file = os.path.abspath("configs/test-save-naming.json")
+
 ## todo: add initial config file path
 ex.add_config(config_file)
 

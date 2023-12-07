@@ -6,6 +6,7 @@ from glob import glob
 from synmorph.analysis.connected_components import cc_per_dt
 # from synmorph.analysis.topological import count_connected_components
 from synmorph.simulation import Simulation
+from synmorph.simulation import Simulation
 
 #### This script runs one simulation and optionally stores
 ####   the experiment information (outputs and metadata) in
@@ -42,8 +43,6 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
         sim.simulate(progress_bar=False)
     # sacred_storage_dir = os.path.abspath("./sacred")
 
-
-
     if ex is not None:
 
         # Save any source code dependencies to Sacred
@@ -62,8 +61,7 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
 
             # Dump data to an HDF5 file
             data_dump_fname = os.path.join(data_dir, "results.hdf5")
-            # todo: save cc_arr here
-            #tri, c_types, n_c
+            # save connected components
             cc_arr = cc_per_dt(sim.t.c_types, sim.tri_save)
 
             with h5py.File(data_dump_fname, "w") as f:
@@ -97,8 +95,5 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
         # Add all artifacts to Sacred
         for _a in artifacts:
             ex.add_artifact(_a)
-
-        ## todo: save cc_arr at central location ?
-
     else:
         return sim

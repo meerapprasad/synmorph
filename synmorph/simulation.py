@@ -140,7 +140,6 @@ class Simulation:
         :return:
         """
         self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
-        # self.tri_save = [None] * self.nts
 
     def simulate(self, progress_bar=True):
         """
@@ -340,6 +339,8 @@ class Simulation:
             },
             **kwargs
         )
+
+    # todo: try saving in a different format that specifies parameters that are changed
 
     def save(self, name, id=None, dir_path="", compressed=False):
         """

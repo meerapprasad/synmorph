@@ -45,7 +45,7 @@ def do_sim_in_parallel(args):
     )
     ex.run(config_updates=cfg_updates)
 
-
+## todo: do multiprocessing here because I/O errors.
 # run one simulation at a time, this does not parallelize
 if __name__ == '__main__':
     args = get_args()
