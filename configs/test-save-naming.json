@@ -42,7 +42,7 @@
         "equi_nkill": 10
     },
     "save_options": {},
-    "save_data": false,
+    "save_data": true,
     "animate": true,
     "n_frames": 10,
     "fps": 15,

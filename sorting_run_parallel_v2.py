@@ -9,10 +9,10 @@ import itertools
 
 from sorting_run_one import ex
 
-dt = 0.025
+dt = 0.01
 # n_steps = 1_000
-n_steps = 10 ## make sure sim runs for 10 steps
-n_frames = 2
+n_steps = 1000 ## make sure sim runs for 10 steps
+n_frames = 25
 # n_frames = 100
 
 ## param vals to scan

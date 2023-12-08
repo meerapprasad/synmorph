@@ -20,7 +20,7 @@ v0_range = [0.0, 0.15]
 p0_range = [3.5, 3.9]
 
 ## todo: read params from file
-n_vals = 15
+n_vals = 12
 w_vals = [float(w) for w in np.logspace(w_range[0], w_range[1], n_vals)]
 # kappa_p_vals = [float(k) for k in np.linspace(kappa_p_range[0], kappa_p_range[1], n_vals)]
 v0_vals = [float(v) for v in np.linspace(v0_range[0], v0_range[1], n_vals)]

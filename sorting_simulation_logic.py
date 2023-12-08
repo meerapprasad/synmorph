@@ -60,16 +60,34 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
             print("Writing data")
 
             # Dump data to an HDF5 file
-            data_dump_fname = os.path.join(data_dir, "results.hdf5")
-            # save connected components
+            # data_dump_fname = os.path.join(data_dir, "results.hdf5")
+            # # save connected components
+            # cc_arr = cc_per_dt(sim.t.c_types, sim.tri_save)
+            #
+            # with h5py.File(data_dump_fname, "w") as f:
+            #     # f.create_dataset("c_types", data=sim.t.c_types, compression="gzip")
+            #     # f.create_dataset("t_span_save", data=sim.t_span_save, compression="gzip")
+            #     # f.create_dataset("tri_save", data=sim.tri_save, compression="gzip")
+            #     # f.create_dataset("x_save", data=sim.x_save, compression="gzip")
+            #     # f.create_dataset("cc_arr", data=cc_arr, compression="gzip")
+            #     f.create_dataset("c_types", data=sim.t.c_types)
+            #     f.create_dataset("t_span_save", data=sim.t_span_save)
+            #     f.create_dataset("tri_save", data=sim.tri_save)
+            #     f.create_dataset("x_save", data=sim.x_save)
+            #     f.create_dataset("cc_arr", data=cc_arr)
+
+            data_dump_fname = os.path.join(data_dir, "results.npz")
+
+            # Save connected components
             cc_arr = cc_per_dt(sim.t.c_types, sim.tri_save)
 
-            with h5py.File(data_dump_fname, "w") as f:
-                f.create_dataset("c_types", data=sim.t.c_types)
-                f.create_dataset("t_span_save", data=sim.t_span_save)
-                f.create_dataset("tri_save", data=sim.tri_save)
-                f.create_dataset("x_save", data=sim.x_save)
-                f.create_dataset("cc_arr", data=cc_arr)
+            # Save data in compressed NPZ format
+            np.savez_compressed(data_dump_fname,
+                                c_types=sim.t.c_types,
+                                t_span_save=sim.t_span_save,
+                                tri_save=sim.tri_save,
+                                x_save=sim.x_save,
+                                cc_arr=cc_arr)
 
             # Add to Sacred artifacts
             artifacts.append(data_dump_fname)
