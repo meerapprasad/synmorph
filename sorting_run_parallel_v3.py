@@ -32,8 +32,9 @@ p0_vals = [float(p) for p in np.linspace(p0_range[0], p0_range[1], n_vals)]
 
 # chunksize = 10
 # todo: set chunksize dynamically based on n_jobs/n_cpus
-chunksize = int(np.ceil(n_vals ** 3/ os.cpu_count()))
+# chunksize = int(np.ceil(n_vals ** 3/ os.cpu_count()))
 # Extract default tissue parameters
+chunksize = 1
 tp_dict = deepcopy(ex.configurations[0]._conf["tissue_params"])
 ap_dict = deepcopy(ex.configurations[0]._conf["active_params"])
 sp_dict = deepcopy(ex.configurations[0]._conf["simulation_params"])
@@ -69,12 +70,12 @@ def do_sim_in_parallel(params):
 # Parallelize simulation
 if __name__ == '__main__':
     # Get param values to change
-    params_lst = list(itertools.product(w_vals, v0_vals, p0_vals)) #kappa_p_vals,
+    params_lst = list(itertools.product(w_vals, v0_vals, p0_vals))[160:] #kappa_p_vals,
     print("Assembling worker pool")
 
     # Get worker pool
-    pool = mp.Pool(psutil.cpu_count(logical=False))
-
+    # pool = mp.Pool(psutil.cpu_count(logical=False))
+    pool = mp.Pool(175)
     print("Performing parallel simulations")
 
     # Run in parallel
