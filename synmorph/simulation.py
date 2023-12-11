@@ -23,7 +23,7 @@ class Simulation:
     Simulation class
     ----------------
 
-    This is the wrapper for the simulation itself. It will autoinstantiate all of the relevant subclasses (e.g. tissue, mesh, active_force, grn etc.)
+    This is the wrapper for the simulation itself. It will autoinstantiate the relevant subclasses (e.g. tissue, mesh, active_force, grn etc.)
 
 
     """
@@ -141,6 +141,7 @@ class Simulation:
         """
         self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
 
+    # @profile
     def simulate(self, progress_bar=True):
         """
         Perform the simulation
