@@ -1,21 +1,16 @@
-import os
-import numpy as np
 import json
 from copy import deepcopy
 
-import psutil
 import multiprocessing as mp
-from tqdm import tqdm
-import itertools
 
-from sorting_run_one_aws import ex
+from sorting_runs.sorting_run_process_aws.sorting_run_one_aws import ex
 
 dt = 0.01
 n_steps = 5_000
 n_frames = 500
 
 ## todo: just rerun the runs that did not work..
-with open('reruns/rerun_params_lst.json', 'r') as f:
+with open('../../reruns/rerun_params_lst.json', 'r') as f:
     params_lst = json.load(f)
 
 # ## param vals to scan

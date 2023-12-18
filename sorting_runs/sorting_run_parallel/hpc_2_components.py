@@ -1,6 +1,6 @@
 from copy import deepcopy
 import argparse
-from sorting_run_one import ex
+from sorting_runs.sorting_run_parallel.sorting_run_one import ex
 
 # todo: implement computing connected components at each step and saving
 def get_args():

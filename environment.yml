@@ -8,6 +8,7 @@ dependencies:
   - numpy>=1.23.*
   - scipy>=1.9.*
   - numba>=0.55.0
+  - seaborn>=0.12.*
   - matplotlib>=3.6.*
   - h5py>=3.*
   - conda-forge::tqdm
@@ -23,4 +24,10 @@ dependencies:
     - blackcellmagic
     - psutil
     - GitPython
-    # - line-profiler
+    - line-profiler
+    - networkx
+    - pandas
+    - pyyaml
+    - numba
+    - psutil
+    - scikit-learn

@@ -176,6 +176,7 @@ class Tissue:
         self.F = Force(self).F
         return sum_forces(self.F, self.active.aF)
 
+    # todo: specify step as an index here
     def update(self, dt):
         """
         Wrapper for update functions.
@@ -214,7 +215,7 @@ class Tissue:
 
     @property
     def init_noise(self):
-        return self.init_params["init_noise"]
+        return float(self.init_params["init_noise"])
 
     @property
     def c_type_proportions(self):

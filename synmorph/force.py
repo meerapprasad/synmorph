@@ -162,9 +162,9 @@ def get_tFsoft(tx, a, k, L):
     """
     Additional "soft" pair-wise repulsion at short range to prevent unrealistic and sudden changes in triangulation.
 
-    Repulsion is on the imediate neighbours (i.e. derived from the triangulation)
+    Repulsion is on the immediate neighbours (i.e. derived from the triangulation)
 
-    And is performed respecting periodic boudnary conditions (system size = L)
+    And is performed respecting periodic boundary conditions (system size = L)
 
     Suppose l_{ij} = \| r_i - r_j \
     F_soft = -k(l_{ij} - 2a)(r_i - r_j) if l_{ij} < 2a; and =0 otherwise

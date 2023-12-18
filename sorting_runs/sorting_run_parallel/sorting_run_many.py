@@ -1,8 +1,6 @@
-import os
-import numpy as np
 from copy import deepcopy
 
-from sorting_run_one import ex
+from sorting_runs.sorting_run_parallel.sorting_run_one import ex
 
 
 ## Set params values to scan

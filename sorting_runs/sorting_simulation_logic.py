@@ -33,10 +33,14 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
         sim = Simulation(**cfg)
         # Run
         sim.simulate(progress_bar=True)
+    ## todo: if unstable, make sure to change dt and tfin for anneal_v0_params
     except Exception as e:
         modified_cfg = cfg.copy()
         modified_cfg["simulation_params"]["dt"] = cfg["simulation_params"]["dt"] /10
         modified_cfg["simulation_params"]["tfin"] = cfg["simulation_params"]["tfin"] * 2
+        if 'anneal_v0_params' in cfg['active_params']:
+            modified_cfg['active_params']['dt'] = cfg['active_params']['dt'] / 10
+            modified_cfg['active_params']['tfin'] = cfg['active_params']['tfin'] * 2
         sim = Simulation(**modified_cfg)
         # Run
         sim.simulate(progress_bar=True)
@@ -45,7 +49,7 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
     if ex is not None:
 
         # Save any source code dependencies to Sacred
-        source_files = glob(os.path.join("synmorph", "*.py"))
+        source_files = glob(os.path.join("../synmorph", "*.py"))
         source_files = [os.path.abspath(f) for f in source_files]
         for sf in source_files:
             ex.add_source_file(sf)

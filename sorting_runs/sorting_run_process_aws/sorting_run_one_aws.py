@@ -2,25 +2,24 @@ import os
 import sacred
 from glob import glob
 from sacred.observers import FileStorageObserver
-from sorting_simulation_logic import do_one_simulation
+from sorting_runs.sorting_simulation_logic import do_one_simulation
 from sacred import SETTINGS
-# SETTINGS['CAPTURE_MODE'] = 'sys'
-import datetime as dt
+SETTINGS.CONFIG.READ_ONLY_CONFIG = False
 
 # Set up Sacred experiment
 ex = sacred.Experiment("sorting-test-aws")
 
 # Save any source code dependencies to Sacred
-source_files = glob(os.path.join("synmorph", "*.py"))
+source_files = glob(os.path.join("../../synmorph", "*.py"))
 source_files = [os.path.abspath(f) for f in source_files]
 for sf in source_files:
     ex.add_source_file(sf)
 
 # Set storage location for all Sacred results
-res_dir = "./sacred"                          # Local
+res_dir = "../../sacred"  # Local
 
 # Set default experimental configuration
-config_file = os.path.abspath("configs/no-perturb-aws.json")
+config_file = os.path.abspath("../../configs/no-perturb-aws.json")
 
 @ex.config_hook
 def custom_config_hook(config, command_name, logger):

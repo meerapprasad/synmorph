@@ -25,7 +25,6 @@ class Simulation:
 
     This is the wrapper for the simulation itself. It will autoinstantiate the relevant subclasses (e.g. tissue, mesh, active_force, grn etc.)
 
-
     """
 
     def __init__(
@@ -47,13 +46,13 @@ class Simulation:
         assert simulation_params is not None, "Specify simulation params"
         assert run_options is not None, "Specify run options"
         assert save_options is not None, "Specify save options"
-        ## todo: specify tissue_file here?
         self.simulation_params = deepcopy(simulation_params)
         self.save_options      = deepcopy(save_options)
 
         if "random_seed" in self.simulation_params:
             np.random.seed(self.simulation_params["random_seed"])
 
+        ## todo: update v0 here instead?
         if tissue is None:
             self.t = Tissue(
                 tissue_params = deepcopy(tissue_params),
