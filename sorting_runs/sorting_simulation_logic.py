@@ -34,17 +34,19 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
         # Run
         sim.simulate(progress_bar=True)
     ## todo: if unstable, make sure to change dt and tfin for anneal_v0_params
-    except Exception as e:
-        modified_cfg = cfg.copy()
-        modified_cfg["simulation_params"]["dt"] = cfg["simulation_params"]["dt"] /10
-        modified_cfg["simulation_params"]["tfin"] = cfg["simulation_params"]["tfin"] * 2
-        if 'anneal_v0_params' in cfg['active_params']:
-            modified_cfg['active_params']['dt'] = cfg['active_params']['dt'] / 10
-            modified_cfg['active_params']['tfin'] = cfg['active_params']['tfin'] * 2
-        sim = Simulation(**modified_cfg)
-        # Run
-        sim.simulate(progress_bar=True)
-    # sacred_storage_dir = os.path.abspath("./sacred")
+    except Exception as e1:
+        try:
+            modified_cfg = cfg.copy()
+            modified_cfg['simulation_params']['int_method'] = 'rk2'
+            sim = Simulation(**modified_cfg)
+            # Run
+            sim.simulate(progress_bar=True)
+            # sacred_storage_dir = os.path.abspath("./sacred")
+        except Exception as e2:
+            modified_cfg = cfg.copy()
+            modified_cfg['simulation_params']['int_method'] = 'rk4'
+            sim = Simulation(**modified_cfg)
+            sim.simulate(progress_bar=True)
 
     if ex is not None:
 
@@ -118,3 +120,10 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
 #     f.create_dataset("tri_save", data=sim.tri_save)
 #     f.create_dataset("x_save", data=sim.x_save)
 #     f.create_dataset("cc_arr", data=cc_arr)
+
+
+        # modified_cfg["simulation_params"]["dt"] = cfg["simulation_params"]["dt"] /10
+        # # modified_cfg["simulation_params"]["tfin"] = cfg["simulation_params"]["tfin"] * 2
+        # if 'anneal_v0_params' in cfg['active_params']:
+        #     modified_cfg['active_params']['dt'] = cfg['active_params']['dt'] / 10
+        #     # modified_cfg['active_params']['tfin'] = cfg['active_params']['tfin'] * 2

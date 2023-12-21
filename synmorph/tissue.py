@@ -104,7 +104,7 @@ class Tissue:
 
         else:
             self.initialize_mesh(x=None, run_options=run_options)
-            self.assign_ctypes()
+            self.assign_ctypes(self.init_params["sorted"])
 
 
     def initialize_mesh(self, x=None, run_options=None):
@@ -127,19 +127,34 @@ class Tissue:
 
         self.mesh = Mesh(x, self.L, run_options=run_options)
 
-    def assign_ctypes(self):  #, mixed=False
-        assert sum(self.c_type_proportions) == 1.0, "c_type_proportions must sum to 1.0"
-        assert (np.array(self.c_type_proportions) >= 0).all(), "c_type_proportions values must all be >=0"
-        self.nc_types = len(self.c_type_proportions)
-        self.c_typeN = [int(pr * self.mesh.n_c) for pr in self.c_type_proportions[:-1]]
-        self.c_typeN += [self.mesh.n_c - sum(self.c_typeN)]
-        c_types = np.zeros(self.mesh.n_c, dtype=np.int32)
-        j = 0
-        for k, ctN in enumerate(self.c_typeN):
-            c_types[j:j + ctN] = k
-            j += ctN
-        np.random.shuffle(c_types)
-        self.c_types = c_types
+    def assign_ctypes(self, sorted=False):  #, mixed=False
+        if sorted:
+            self.assign_ctypes_sorted()
+        else:
+            assert sum(self.c_type_proportions) == 1.0, "c_type_proportions must sum to 1.0"
+            assert (np.array(self.c_type_proportions) >= 0).all(), "c_type_proportions values must all be >=0"
+            self.nc_types = len(self.c_type_proportions)
+            self.c_typeN = [int(pr * self.mesh.n_c) for pr in self.c_type_proportions[:-1]]
+            self.c_typeN += [self.mesh.n_c - sum(self.c_typeN)]
+            c_types = np.zeros(self.mesh.n_c, dtype=np.int32)
+            j = 0
+            for k, ctN in enumerate(self.c_typeN):
+                c_types[j:j + ctN] = k
+                j += ctN
+            np.random.shuffle(c_types)
+            self.c_types = c_types
+            self.c_type_tri_form()
+
+    def assign_ctypes_sorted(self):
+        # Calculate the midpoint of the x-coordinates
+        ## todo: change to update this based on input
+        midpoint_x = np.mean(self.mesh.x[:, 0])
+
+        # Assign labels based on the midpoint
+        labels = [0 if x < midpoint_x else 1 for x, _ in self.mesh.x]
+        self.c_types = np.array(labels).astype(int)
+        self.nc_types = len(np.unique(self.c_types))
+        self.c_typeN = np.unique(self.c_types, return_counts=True)[1].tolist()
         self.c_type_tri_form()
 
     def assign_ctypes_from_config(self, c_type_arr, n_perturb=None):  #todo: add perturbation here?
@@ -177,22 +192,22 @@ class Tissue:
         return sum_forces(self.F, self.active.aF)
 
     # todo: specify step as an index here
-    def update(self, dt):
+    def update(self, dt, k):
         """
         Wrapper for update functions.
         :param dt: time-step.
         :return:
         """
-        self.update_active(dt)
+        self.update_active(dt, k)
         self.update_mechanics()
 
-    def update_active(self, dt):
+    def update_active(self, dt, k):
         """
         Wrapper for update of active forces
         :param dt: time-step
         :return:
         """
-        self.active.update_active_force(dt)
+        self.active.update_active_force(dt, k)
 
     def update_mechanics(self):
         """

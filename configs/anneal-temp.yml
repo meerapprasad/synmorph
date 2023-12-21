@@ -16,7 +16,8 @@ active_params:
   dt: 0.025
   anneal_v0_params:
     init_v0: 0.1
-    perc_linear_time: 0.8
+    linear_end_temp: 0.08
+    perc_linear_time: 0.2
     final_v0: 0.001
 
 init_params:
@@ -25,6 +26,7 @@ init_params:
     - 0.5
     - 0.5
   init_config_file: null
+  sorted: false
 
 simulation_params:
   dt: 0.025
@@ -32,6 +34,7 @@ simulation_params:
   tskip: 10
   grn_sim: null
   random_seed: 10
+  int_method: 'euler-explicit'
 
 run_options:
   equiangulate: true

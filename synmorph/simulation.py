@@ -140,6 +140,61 @@ class Simulation:
         """
         self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
 
+    def integrate_step(self, update, method, dt, k):
+        """update is a method"""
+        if method == 'euler-explicit':
+            update(dt, k)  # update the tissue and the GRN.
+            F = self.t.get_forces()  # calculate the forces.
+            self.t.mesh.x += F * dt  # execute the movements.
+
+        elif method == 'rk2':
+            # Store original position
+            original_x = self.t.mesh.x.copy()
+
+            update(dt, k)  # update the tissue and the GRN.
+            F1 = self.t.get_forces()  # calculate the forces at the start.
+            x_mid = original_x + F1 * 0.5 * dt  # intermediate value of x
+
+            # Midpoint evaluation
+            self.t.mesh.x = x_mid  # set mesh to intermediate position for force calculation
+            update(dt / 2, k)  # update at midpoint
+            F2 = self.t.get_forces()  # calculate forces at midpoint
+
+            # Revert to original position and execute final movement
+            self.t.mesh.x = original_x + F2 * dt
+
+        elif method == 'rk4':
+            # Store original position
+            original_x = self.t.mesh.x.copy()
+
+            update(dt, k)  # update the tissue
+            F1 = self.t.get_forces()  # calculate the forces at the start.
+            v1 = F1 * dt
+
+            # First intermediate step
+            self.t.mesh.x = original_x + v1 / 2
+            update(dt / 2, k)
+            F2 = self.t.get_forces()
+            v2 = F2 * dt
+
+            # Second intermediate step
+            self.t.mesh.x = original_x + v2 / 2
+            update(dt / 2, k)
+            F3 = self.t.get_forces()
+            v3 = F3 * dt
+
+            # Third intermediate step
+            self.t.mesh.x = original_x + v3
+            update(dt, k)
+            F4 = self.t.get_forces()
+            v4 = F4 * dt
+
+            # Final update
+            self.t.mesh.x = original_x + (v1 + 2 * v2 + 2 * v3 + v4) / 6
+
+        # Common code for both methods
+        self.t.mesh.x = per.mod2(self.t.mesh.x, self.t.mesh.L, self.t.mesh.L)  # apply periodic boundary
+
     # @profile
     def simulate(self, progress_bar=True):
         """
@@ -147,6 +202,7 @@ class Simulation:
         :param progress_bar: bool. Whether to show or hide the progress bar.
         """
         dt = self.dt  ##repeatedly called to saved here temporarily.
+        ## todo: pass k into the update
         k = 0  ##dummy variable to count the number of saved time-points.
 
         grn = True if self.grn is not None else False  # bool for whether to perform the grn calculation if such a model is specified.
@@ -168,20 +224,18 @@ class Simulation:
 
         for i in iterator:
             t = self.t_span[i]  # present time-point
-            update(dt)  # update the tissue and the grn.
-            F = self.t.get_forces()  # calculate the forces.
-            self.t.mesh.x += F * dt  # execute the movements.
-            self.t.mesh.x = per.mod2(self.t.mesh.x, self.t.mesh.L, self.t.mesh.L)  # enforce periodicity
+            ## todo: pass in i instead of k
+            self.integrate_step(update, self.simulation_params['int_method'], dt, i)
+
             if not i % self.tskip:
                 ## for the saving time-points, copy over to x_save (and also var_save)
                 self.x_save[k] = self.t.mesh.x
                 self.tri_save[k] = self.t.mesh.tri
 
-                # self.tri_save[k] = self.t.mesh.tri
                 if grn:
                     self.var_save[k] = self.grn.var
                 k += 1
-                
+
                 if save == "all":  # save the corresponding tissue class to a pickle file.
                     self.t.set_time(t)
                     self.t.save("%s_f%d" % (self.name, i),
@@ -453,3 +507,102 @@ class Simulation:
 #     else:
 #         # If the new array is smaller, truncate the original array
 #         self.tri_save[k] = self.tri_save[k][:new_shape[0], :
+
+
+# update(dt)  # update the tissue and the grn.
+# F = self.t.get_forces()  # calculate the forces.
+# self.t.mesh.x += F * dt  # execute the movements.
+# self.t.mesh.x = per.mod2(self.t.mesh.x, self.t.mesh.L, self.t.mesh.L)  # enforce periodicity
+
+
+## todo: exact same code to run rk vs euler
+        # if method == 'euler-explicit':
+        #     update(dt, k)  # update the tissue and the GRN.
+        #     F = self.t.get_forces()  # calculate the forces.
+        #     self.t.mesh.x += F * dt  # execute the movements.
+        #
+        # elif method == 'rk2':
+        #     update(dt, k)  # update the tissue and the GRN.
+        #     F1 = self.t.get_forces()  # calculate the forces at the start.
+        #     x_original = self.t.mesh.x  # store original position
+        #     x_mid = x_original + F1 * 0.5 * dt  # intermediate value of x
+        #
+        #     # Midpoint evaluation
+        #     self.t.mesh.x = x_mid  # set mesh to intermediate position
+        #     update(dt / 2, k)  # update at midpoint
+        #     F2 = self.t.get_forces()  # calculate forces at midpoint
+        #     self.t.mesh.x = x_original  # revert to original position
+        #
+        #     # Final update
+        #     self.t.mesh.x += F2 * dt  # execute the movements with midpoint forces
+        #
+        # elif method == 'rk4':
+        #     update(dt, k)  # update the tissue
+        #     F1 = self.t.get_forces()  # calculate the forces at the start.
+        #     x_original = self.t.mesh.x
+        #     v1 = F1 * dt
+        #
+        #     # First intermediate step
+        #     self.t.mesh.x = x_original + v1 / 2
+        #     update(dt / 2, k)
+        #     F2 = self.t.get_forces()
+        #     v2 = F2 * dt
+        #
+        #     # Second intermediate step
+        #     self.t.mesh.x = x_original + v2 / 2
+        #     update(dt / 2, k)
+        #     F3 = self.t.get_forces()
+        #     v3 = F3 * dt
+        #
+        #     # Third intermediate step
+        #     self.t.mesh.x = x_original + v3
+        #     update(dt, k)
+        #     F4 = self.t.get_forces()
+        #     v4 = F4 * dt
+        #
+        #     # Final update
+        #     self.t.mesh.x = x_original + (v1 + 2 * v2 + 2 * v3 + v4) / 6
+
+
+# if method == 'euler-explicit':
+#     update(dt, k)  # update the tissue and the GRN.
+#     F = self.t.get_forces()  # calculate the forces.
+#     self.t.mesh.x += F * dt  # execute the movements.
+# elif method == 'rk2':
+#     update(dt, k)  # update the tissue and the GRN.
+#     F1 = self.t.get_forces()  # calculate the forces at the start.
+#     x_mid = self.t.mesh.x + F1 * 0.5 * dt  # intermediate value of x
+#
+#     # Midpoint evaluation
+#     self.t.mesh.x = x_mid  # set mesh to intermediate position
+#     update(dt / 2, k)  # update at midpoint
+#     F2 = self.t.get_forces()  # calculate forces at midpoint
+#
+#     # Final update
+#     self.t.mesh.x += F2 * dt  # execute the movements with midpoint forces
+# elif method == 'rk4':
+#     update(dt, k)  # update the tissue
+#     F1 = self.t.get_forces()  # calculate the forces at the start.
+#     x1 = self.t.mesh.x
+#     v1 = F1 * dt
+#
+#     # First intermediate step
+#     self.t.mesh.x = x1 + v1 / 2
+#     update(dt / 2, k)
+#     F2 = self.t.get_forces()
+#     v2 = F2 * dt
+#
+#     # Second intermediate step
+#     self.t.mesh.x = x1 + v2 / 2
+#     update(dt / 2, k)
+#     F3 = self.t.get_forces()
+#     v3 = F3 * dt
+#
+#     # Third intermediate step
+#     self.t.mesh.x = x1 + v3
+#     update(dt, k)
+#     F4 = self.t.get_forces()
+#     v4 = F4 * dt
+#
+#     # Final update
+#     self.t.mesh.x = x1 + (v1 + 2 * v2 + 2 * v3 + v4) / 6

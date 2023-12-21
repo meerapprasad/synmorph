@@ -7,9 +7,9 @@ import multiprocessing as mp
 from run_one_sim import ex, args
 
 ## todo: will need to update how v0 is saved
-dt = args.dt
+dt = 0.01  #args.dt
 n_steps = 500    # args.n_steps
-n_frames = 100     # args.n_frames
+n_frames = int(n_steps/10)     # args.n_frames
 
 ## todo: specify a file with perturbation runs
 if args.params_file is not None:
@@ -24,9 +24,9 @@ ap_dict = deepcopy(ex.configurations[0]._conf["active_params"])
 sp_dict = deepcopy(ex.configurations[0]._conf["simulation_params"])
 
 ## todo: put these in argparse?
-w_ab = math.exp(-1.44)
-v0 = 0.08
-p0 = 3.81
+w_ab = math.exp(-2.77)
+v0 = 0.10
+p0 = 3.90
 _params = [[w_ab, v0, p0],]
 
 
