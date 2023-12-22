@@ -1,6 +1,7 @@
 import _pickle as cPickle
 import bz2
 import pickle
+import json
 
 import os
 import numpy as np
@@ -12,6 +13,7 @@ from synmorph.force import Force
 from synmorph.mesh import Mesh
 from synmorph import utils
 
+# todo: add perturbation params here
 
 class Tissue:
     """
@@ -33,12 +35,25 @@ class Tissue:
             assert init_params is not None, "Specify init params"
             assert run_options is not None, "Specify run options"
             self.tissue_params = tissue_params
-            
-            # Convert adhesion matrix to numpy array 
-            if "W" in self.tissue_params.keys():
-                self.tissue_params.update({"W": np.asarray(self.tissue_params["W"])})
-
             self.init_params = init_params
+
+            # todo: initialize W from a config
+            # Convert adhesion matrix to numpy array
+            if 'init_config_file' not in init_params:
+            # if "W" in self.tissue_params.keys():
+                self.tissue_params.update({"W": np.asarray(self.tissue_params["W"])})
+            elif 'perturb_W' in self.tissue_params:
+                with open(os.path.join(init_params["init_config_file"] + "config.json"), 'r') as file:
+                    config_ = json.load(file)
+                rest_W = np.asarray(config_['tissue_params']["W"])
+                ## todo: make a new W with perturb_W
+                perturb_W = np.asarray(self.tissue_params['perturb_W'])
+                W = np.zeros((perturb_W.shape[1],perturb_W.shape[1]))
+                W[:2, :2] = rest_W
+                W[2:] = perturb_W
+                # W[0, 2], W[1,2] = perturb_W[0][0], perturb_W[0][1]
+                self.tissue_params.update({"W": W})
+
             self.mesh = None
 
             self.c_types = None
@@ -98,9 +113,10 @@ class Tissue:
         :return:
         """
         if self.init_params["init_config_file"] is not None:
-            c_arr = np.load(self.init_params["init_config_file"])
-            self.initialize_mesh(x=c_arr[:,:2], run_options=run_options)
-            self.assign_ctypes_from_config(c_arr[:,2],  n_perturb=self.init_params["n_perturb"])
+            # c_arr = np.load(self.init_params["init_config_file"])
+            results_ = np.load(self.init_params["init_config_file"] + "results.npz")
+            self.initialize_mesh(x=results_['x_save'][-1], run_options=run_options)
+            self.assign_ctypes_from_config(results_['c_types'],  n_perturb=self.init_params["n_perturb"])
 
         else:
             self.initialize_mesh(x=None, run_options=run_options)
@@ -127,6 +143,7 @@ class Tissue:
 
         self.mesh = Mesh(x, self.L, run_options=run_options)
 
+    # todo: seed here
     def assign_ctypes(self, sorted=False):  #, mixed=False
         if sorted:
             self.assign_ctypes_sorted()
@@ -167,6 +184,7 @@ class Tissue:
             closest_index = np.argmin(distances)
             closest_point = c2_points[closest_index]
             perturb_idx = np.argwhere(self.mesh.x == closest_point)[0][0]
+            self.perturb_idx = perturb_idx
             self.c_types[perturb_idx] = 2
 
         self.nc_types = len(np.unique(self.c_types))

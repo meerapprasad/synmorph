@@ -23,10 +23,10 @@ tp_dict = deepcopy(ex.configurations[0]._conf["tissue_params"])
 ap_dict = deepcopy(ex.configurations[0]._conf["active_params"])
 sp_dict = deepcopy(ex.configurations[0]._conf["simulation_params"])
 
-## todo: put these in argparse?
+## todo: if loading from a previous run, override these params
 w_ab = math.exp(-2.77)
-v0 = 0.10
-p0 = 3.90
+v0 = 10.0
+p0 = 3.54
 _params = [[w_ab, v0, p0],]
 
 
@@ -44,8 +44,11 @@ def do_sim_in_parallel(params):
     ap = deepcopy(ap_dict)
     if 'v0' in ap:
         ap["v0"] = v0
-    else:
+    elif 'anneal_v0_params' in ap:
         ap['anneal_v0_params']['init_v0'] = v0
+    elif 'perturb_v0_params' in ap:
+        ap['perturb_v0_params']['p_v0'] = v0
+
     ap['tfin'] = n_steps
     ap['dt'] = dt
     sp = deepcopy(sp_dict)

@@ -329,7 +329,7 @@ def get_first_nonzero(flat_mask):
         i+=1
     return i
 
-
+## todo: pass in a seed here
 @jit(nopython=True)
 def get_any_nonzero(flat_mask):
     i = int(np.random.random()*flat_mask.size)

@@ -7,6 +7,8 @@ tissue_params:
   W:
     - [0, 0.00762]
     - [0.00762, 0]
+  perturb_W:
+    - [0.001, 0.001, 0]
   a: 0.3
   k: 1.0
 
@@ -14,19 +16,23 @@ active_params:
   Dr: 0.1
   tfin: 100
   dt: 0.025
-  anneal_v0_params:
-    init_v0: 0.1
-    linear_end_temp: 0.08
-    perc_linear_time: 0.2
-    final_v0: 0.001
+#  anneal_v0_params:
+#    init_v0: 0.1
+#    linear_end_temp: 0.08
+#    perc_linear_time: 0.8
+#    final_v0: 0.001
+  perturb_v0_params:
+    p_v0: 10000.0
+    rest_v0: .001
 
 init_params:
   init_noise: 5e-05
   c_type_proportions:
     - 0.5
     - 0.5
-  init_config_file: null
+  init_config_file: "/home/mprasad/PycharmProjects/synmorph/sacred/anneal-v0-sorting/103/"
   sorted: false
+  n_perturb: 1
 
 simulation_params:
   dt: 0.025
@@ -51,4 +57,5 @@ c_type_col_map:
   - "#FFBA40"
   - "#67F5B5"
 
-expt_name: "anneal-v0-sorting"
+# expt_name: "anneal-v0-sorting"
+expt_name: "perturb-test"

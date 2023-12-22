@@ -63,7 +63,7 @@ class Simulation:
         else:
             self.t = tissue
 
-        ###To do: include functionality to load a tissue pickle file.
+        ### Todo: include functionality to load a tissue pickle file.
         self.t_span = None
         self.t_span_save = None
         self.nt = None

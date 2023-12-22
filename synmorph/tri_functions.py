@@ -382,7 +382,7 @@ def circumcenter(C, L):
 def normalise(x):
     return (x - x.min()) / (x.max() - x.min())
 
-
+## todo: set seed here
 def hexagonal_lattice(rows=3, cols=3, noise=0.0005, A=None):
     """
     Assemble a hexagonal lattice
