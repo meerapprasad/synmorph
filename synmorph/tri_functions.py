@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+from numba import jit # , cuda
 from scipy.sparse import coo_matrix
 from synmorph.utils import grid_xy
 
@@ -14,7 +14,65 @@ This includes rolls etc.
 Also includes functions to convert an array of cell-properties to the triangulated form, and to sum components from each triangle back into a cell-type property 1D array 
 """
 
+# @cuda.jit
+# def remove_repeats(tri, n_c, output, output_size):
+#     # CUDA kernel to remove repeats in parallel
+#     # Each thread will handle one row of the input array
+#     x = cuda.grid(1)
+#     row_length = tri.shape[1]  # Assuming all rows have the same length
+#
+#     if x < tri.shape[0]:
+#         is_unique = True
+#         current_row_temp = cuda.local.array(shape=(row_length,), dtype=np.int64)
+#         other_row_temp = cuda.local.array(shape=(row_length,), dtype=np.int64)
+#
+#         # Process the current row
+#         order_tris_single(tri[x], n_c, row_length, current_row_temp)
+#
+#         # Compare the current row with all other rows
+#         for i in range(tri.shape[0]):
+#             if x != i:
+#                 order_tris_single(tri[i], n_c, row_length, other_row_temp)
+#                 if np.all(current_row_temp == other_row_temp):
+#                     is_unique = False
+#                     break
+#
+#         # If the row is unique, add it to the output array
+#         if is_unique:
+#             size = cuda.atomic.add(output_size, 0, 1)
+#             for j in range(row_length):
+#                 output[size, j] = current_row_temp[j]
+#
+# @cuda.jit
+# def order_tris_cuda(tri, n_c, ordered_tri):
+#     # CUDA kernel to reorder triangles
+#     x = cuda.grid(1)
+#
+#     if x < tri.shape[0]:
+#         ordered_tri[x] = order_tris_single(tri[x], n_c)
+#
+# @cuda.jit(device=True)
+# def order_tris_single(row, n_c, row_length, result):
+#     # Use provided 'result' array instead of creating a new one
+#     mod_row = cuda.local.array(shape=(row_length,), dtype=np.int64)
+#
+#     # Manual modulus operation for each element in the row
+#     for i in range(row_length):
+#         mod_row[i] = row[i] % n_c
+#
+#     # Find the index of the minimum value in mod_row
+#     min_index = 0
+#     for i in range(1, row_length):
+#         if mod_row[i] < mod_row[min_index]:
+#             min_index = i
+#
+#     # Manually roll the row to reorder
+#     for i in range(row_length):
+#         new_index = (i - min_index) % row_length
+#         result[new_index] = row[i]
 
+
+## todo: potential bottleneck
 @jit(nopython=True, parallel=True)
 def order_tris(tri):
     """
@@ -27,7 +85,6 @@ def order_tris(tri):
         ordered_tri[i] = np.roll(row, -np.argmin(row))
 
     return ordered_tri
-
 
 @jit(nopython=True)
 def remove_repeats(tri, n_c):
@@ -50,7 +107,6 @@ def remove_repeats(tri, n_c):
             new_list.append(l)
 
     return np.asarray(new_list, dtype=np.int32)
-
 
 @jit(nopython=True)
 def make_y(x, L):
@@ -473,3 +529,94 @@ def tri_angles_periodic(x, tri, L):
     cos_Angles = (b2 + c2 - a2) / (2 * np.sqrt(b2) * np.sqrt(c2))
     Angles = np.arccos(cos_Angles)
     return Angles
+
+
+
+# @cuda.jit
+# def order_tris_cuda(tri, ordered_tri):
+#     # Determine the thread's absolute position within the grid
+#     # x = cuda.grid(1)
+#     #
+#     # # Check if the thread is within the bounds of the array
+#     # if x < tri.shape[0]:
+#     #     row = tri[x]
+#     #     ordered_tri[x] = np.roll(row, -np.argmin(row))
+#     x = cuda.grid(1)
+#     if x < tri.shape[0]:
+#         row = tri[x]
+#         min_index = 0
+#         min_value = row[0]
+#         for i in range(1, len(row)):
+#             if row[i] < min_value:
+#                 min_value = row[i]
+#                 min_index = i
+#         # Implementing a manual roll operation
+#         for i in range(len(row)):
+#             ordered_tri[x, i] = row[(i + min_index) % len(row)]
+
+# @cuda.jit
+# def mark_duplicates_kernel(sorted_tri, duplicate_flags):
+#     # x = cuda.grid(1)
+#     # if x < sorted_tri.shape[0] - 1:
+#     #     # Mark this row as a duplicate if it is the same as the next row
+#     #     duplicate_flags[x] = np.all(sorted_tri[x] == sorted_tri[x + 1])
+#     x = cuda.grid(1)
+#     if x < sorted_tri.shape[0] - 1:
+#         is_duplicate = True
+#         for i in range(sorted_tri.shape[1]):
+#             if sorted_tri[x, i] != sorted_tri[x + 1, i]:
+#                 is_duplicate = False
+#                 break
+#         duplicate_flags[x] = is_duplicate
+#
+# # This function is a placeholder for a parallel sorting algorithm
+# def parallel_sort(tri):
+#     # Implement parallel sorting here
+#     return np.sort(tri, axis=0)
+#
+# @cuda.jit
+# def compact_array_kernel(sorted_tri, duplicate_flags, compacted_tri, new_indices):
+#     x = cuda.grid(1)
+#     if x < sorted_tri.shape[0] and not duplicate_flags[x]:
+#         new_index = new_indices[x]
+#         compacted_tri[new_index] = sorted_tri[x]
+#
+# def remove_repeats(tri, n_c):
+#     n = tri.shape[0]
+#     # ordered_tri = np.empty_like(tri)
+#     tri_device = cuda.to_device(np.mod(tri, n_c))
+#     ordered_tri_device = cuda.device_array(tri.shape)
+#     # Define the number of threads per block and the number of blocks per grid
+#     threads_per_block = 32  # This is a typical value, but it can be tuned based on your GPU architecture
+#     blocks_per_grid = (n + threads_per_block - 1) // threads_per_block
+#
+#     # Now launch the kernel with the specified configuration
+#     order_tris_cuda[blocks_per_grid, threads_per_block](tri_device, ordered_tri_device)
+#
+#     # Sort the array using a parallel sort (to be implemented)
+#     sorted_tri = parallel_sort(tri_device.copy_to_host())
+#
+#     # Allocate an array to mark duplicates
+#     duplicate_flags = np.zeros(sorted_tri.shape[0], dtype=np.bool_)
+#
+#     # Calculate grid configuration
+#     threads_per_block = 32
+#     blocks_per_grid = (sorted_tri.shape[0] + (threads_per_block - 1)) // threads_per_block
+#
+#     # Mark duplicates
+#     sorted_tri_device = cuda.to_device(sorted_tri)
+#     mark_duplicates_kernel[blocks_per_grid, threads_per_block](sorted_tri_device, cuda.to_device(duplicate_flags))
+#
+#     new_indices_host = np.cumsum(~duplicate_flags) - 1
+#     new_indices_device = cuda.to_device(new_indices_host)
+#     compacted_tri_device = cuda.device_array((new_indices_host[-1] + 1, 3), dtype=np.int32)
+#
+#     # Calculate grid configuration
+#     threads_per_block = 32
+#     blocks_per_grid = (sorted_tri.shape[0] + (threads_per_block - 1)) // threads_per_block
+#
+#     # Compact the array
+#     compact_array_kernel[blocks_per_grid, threads_per_block](sorted_tri, duplicate_flags, compacted_tri_device,
+#                                                              new_indices_device)
+#
+#     return compacted_tri_device.copy_to_host()

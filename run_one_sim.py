@@ -7,6 +7,7 @@ from sorting_runs.sorting_simulation_logic import do_one_simulation
 from sacred import SETTINGS
 SETTINGS.CONFIG.READ_ONLY_CONFIG = False
 
+## todo: prevent cells from moving out of frame
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -33,7 +34,6 @@ for sf in source_files:
 res_dir = "sacred"  # Local
 
 # Set default experimental configuration
-## todo: set the config file with kwargs
 config_file = os.path.abspath(args.config_yaml)
 
 @ex.config_hook
@@ -59,12 +59,8 @@ ex.add_config(config_file)
 def run_one_simulation(_config, _run, seed):
     """Simulates SPV given a single parameter configuration"""
     # _config contains all the variables in the configuration
-    # _run contains data about the run
     c = _config.copy()
 
-    # Extract save_data and remove from config
-    # save_data = c.pop('save_data')
-    # animate_data = c.pop('animate_data')
     do_one_simulation(
         ex=ex,
         **_config

@@ -7,6 +7,8 @@ from datetime import datetime
 import codecs, json
 from copy import deepcopy
 
+from scipy.spatial import distance
+
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
@@ -17,7 +19,7 @@ import synmorph.periodic_functions as per
 import synmorph.sim_plotting as plot
 from synmorph.tissue import Tissue
 
-
+from synmorph.boundaries import compute_boundary, compute_min_distances_vectorized
 class Simulation:
     """
     Simulation class
@@ -140,13 +142,50 @@ class Simulation:
         """
         self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
 
+    # todo: add boundary conditions here
+    def boundary_conditions(self, x, min_dist_boundary=.25):
+        # todo: make alpha a parameter
+        boundary_spline = compute_boundary(self.t.mesh.x)
+        # Compute the minimum distance to centroid
+        min_distances_vectorized = compute_min_distances_vectorized(x, boundary_spline)
+        # todo: may be a problem if the cell teleports outside the boundary
+        bool_thresh = min_distances_vectorized > min_dist_boundary
+        return bool_thresh
+
+    def repel_boundary(self, bool_thresh, centroid_pull_factor=.075):
+        # if the perturbed cell is in the boundary zone somehow repel it back inwards
+        if bool_thresh[self.t.c_types == 2][0] == False:  # cell within boundary
+            # compute mean
+            center = np.mean(self.t.mesh.x, axis=0)
+            self.t.mesh.x[self.t.c_types == 2] += centroid_pull_factor * (
+                        center - self.t.mesh.x[self.t.c_types == 2])
+
+    def apply_boundary_conditions(self, F, dt):
+        x = self.t.mesh.x.copy()
+        x += F * dt  # execute the movements.
+        bool_thresh = self.boundary_conditions(x,
+                                               min_dist_boundary=self.simulation_params["boundary"]["boundary_radius"])
+        # only update cells that are inside the boundary
+        self.t.mesh.x += F * dt * bool_thresh.astype(int)[:, np.newaxis]  # execute the movements.
+        # if the perturbed cell is in the boundary zone, repel it back inwards
+        # if self.simulation_params['boundary']['perturb']:  # generalize to more perturbed cells
+        self.repel_boundary(bool_thresh,
+                            centroid_pull_factor=self.simulation_params["boundary"]["centroid_pull_factor"])
+    # TODO: make this modular it is awful
     def integrate_step(self, update, method, dt, k):
         """update is a method"""
         if method == 'euler-explicit':
             update(dt, k)  # update the tissue and the GRN.
             F = self.t.get_forces()  # calculate the forces.
-            self.t.mesh.x += F * dt  # execute the movements.
+            if "boundary" in self.simulation_params:
+               self.apply_boundary_conditions(F, dt)
+            else:
+                self.t.mesh.x += F * dt
 
+            # plt.plot(boundary_spline[:, 0], boundary_spline[:, 1])
+            # plt.plot(x[:, 0], x[:, 1], '.')
+            # plt.plot(x[:,0][bool_thresh], x[:,1][bool_thresh], 'o')
+            # plt.show()
         elif method == 'rk2':
             # Store original position
             original_x = self.t.mesh.x.copy()
@@ -161,7 +200,10 @@ class Simulation:
             F2 = self.t.get_forces()  # calculate forces at midpoint
 
             # Revert to original position and execute final movement
-            self.t.mesh.x = original_x + F2 * dt
+            if "boundary" in self.simulation_params:
+                self.apply_boundary_conditions(F2, dt)
+            else:
+                self.t.mesh.x = original_x + F2 * dt
 
         elif method == 'rk4':
             # Store original position
@@ -188,9 +230,13 @@ class Simulation:
             update(dt, k)
             F4 = self.t.get_forces()
             v4 = F4 * dt
+            if "boundary" in self.simulation_params:
+                F5 = (v1 + 2 * v2 + 2 * v3 + v4) / 6
+                self.apply_boundary_conditions(F5, dt)
 
             # Final update
-            self.t.mesh.x = original_x + (v1 + 2 * v2 + 2 * v3 + v4) / 6
+            else:
+                self.t.mesh.x = original_x + (v1 + 2 * v2 + 2 * v3 + v4) / 6
 
         # Common code for both methods
         self.t.mesh.x = per.mod2(self.t.mesh.x, self.t.mesh.L, self.t.mesh.L)  # apply periodic boundary

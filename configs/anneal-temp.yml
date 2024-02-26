@@ -8,7 +8,7 @@ tissue_params:
     - [0, 0.00762]
     - [0.00762, 0]
   perturb_W:
-    - [0.001, 0.001, 0]
+    - [1.0, 0.85, 0]
   a: 0.3
   k: 1.0
 
@@ -22,7 +22,7 @@ active_params:
 #    perc_linear_time: 0.8
 #    final_v0: 0.001
   perturb_v0_params:
-    p_v0: 10000.0
+    p_v0: 1.0
     rest_v0: .001
 
 init_params:
@@ -41,6 +41,12 @@ simulation_params:
   grn_sim: null
   random_seed: 10
   int_method: 'euler-explicit'
+  boundary:
+    perturb: true
+    boundary_radius: 0.25
+    centroid_pull_factor: .1
+
+
 
 run_options:
   equiangulate: true

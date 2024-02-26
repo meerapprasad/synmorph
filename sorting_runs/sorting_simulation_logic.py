@@ -26,6 +26,7 @@ data_dir = os.path.abspath(f"/tmp/{uid}")  # Use root temp dir (Linux/MacOS)
 os.makedirs(data_dir, exist_ok=True)
 
 
+##### TODO: there may be a memory problem when I run other integration schemes
 def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
 
     # Create simulation with defined configuration
@@ -33,7 +34,7 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
         sim = Simulation(**cfg)
         # Run
         sim.simulate(progress_bar=True)
-    ## todo: if unstable, make sure to change dt and tfin for anneal_v0_params
+    ## todo: add an exception for timeout process error
     except Exception as e1:
         try:
             modified_cfg = cfg.copy()
@@ -68,6 +69,7 @@ def do_one_simulation(ex=None, save_data=False, animate=False, **cfg):
 
             # Save connected components
             cc_arr = cc_per_dt(sim.t.c_types, sim.tri_save)
+            # todo: compute perturb cell dist travelled, and elasticity of the tissue
 
             # Save data in compressed NPZ format
             np.savez_compressed(data_dump_fname,

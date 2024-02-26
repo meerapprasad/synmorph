@@ -1,7 +1,7 @@
 # import _pickle as cPickle
 # import bz2
 # import pickle
-
+from numba import cuda
 import numpy as np
 import triangle as tr
 from numba import jit
@@ -92,6 +92,7 @@ class Mesh:
         self.get_displacements()
         self.get_A()
         self.get_P()
+        # points = x
         self.get_l_interface()
 
     def update_from_tri(self):
@@ -162,7 +163,8 @@ class Mesh:
             self._triangulate()
             self.k2s = get_k2(self.tri, self.neigh)
         else:
-            tri, neigh, k2s, failed = re_triangulate(self.x, self.tri, self.neigh, self.k2s, self.tx, self.L, self.n_v, self.vs,max_runs=self.run_options["equi_nkill"])
+            tri, neigh, k2s, failed = re_triangulate(self.x, self.tri, self.neigh, self.k2s, self.tx, self.L, self.n_v,
+                                                     self.vs, max_runs=self.run_options["equi_nkill"])
             if failed:
                 self._triangulate()
                 self.k2s = get_k2(self.tri, self.neigh)
@@ -262,6 +264,20 @@ def _triangulate(x, L):
 
     # 6. Return outputs
     return n_tri.shape[0], n_tri, trf.get_neighbours(n_tri)
+    # tri_device = cuda.to_device(new_tri)
+    # output = np.zeros_like(tri)
+    # output_device = cuda.to_device(output)
+    # output_size = np.array([0], dtype=np.int32)
+    # output_size_device = cuda.to_device(output_size)
+    #
+    # # Define the launch configuration
+    # threads_per_block = 32  # Adjust based on your GPU
+    # blocks = (tri.shape[0] + (threads_per_block - 1)) // threads_per_block
+    #
+    # # Call the CUDA kernels
+    # trf.remove_repeats[blocks, threads_per_block](tri_device, n_c, output_device, output_size_device)
+    #
+    # return n_tri.copy_to_host(), n_tri.copy_to_host(), trf.get_neighbours(n_tri.copy_to_host())
 
 
 @jit(nopython=True)
