@@ -15,7 +15,7 @@ sp_dict = deepcopy(ex.configurations[0]._conf["simulation_params"])
 ## todo: if loading from a previous run, override these params
 w_ab = math.exp(-1.44)
 # v0 = np.linspace(1.1, 2.1, 5)
-v0 = 1.2
+v0 = 5.0
 p0 = 3.7
 global_seed = 100
 _params = [w_ab, v0, p0]
